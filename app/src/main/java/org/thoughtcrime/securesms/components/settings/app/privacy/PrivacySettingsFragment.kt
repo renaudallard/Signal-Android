@@ -161,6 +161,15 @@ class PrivacySettingsFragment : DSLSettingsFragment(R.string.preferences__privac
         }
       )
 
+      switchPref(
+        title = DSLSettingsText.from(R.string.PrivacySettingsFragment__android_auto_messages),
+        summary = DSLSettingsText.from(R.string.PrivacySettingsFragment__android_auto_messages_summary),
+        isChecked = state.androidAutoMessages,
+        onClick = {
+          viewModel.setAndroidAutoMessagesEnabled(!state.androidAutoMessages)
+        }
+      )
+
       dividerPref()
 
       sectionHeaderPref(R.string.PrivacySettingsFragment__disappearing_messages)

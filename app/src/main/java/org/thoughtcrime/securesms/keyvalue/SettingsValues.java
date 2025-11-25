@@ -63,6 +63,7 @@ public final class SettingsValues extends SignalStoreValues {
   public static final  String CALL_RINGTONE                           = "settings.call.ringtone";
   public static final  String CALL_VIBRATE_ENABLED                    = "settings.call.vibrate.enabled";
   public static final  String NOTIFY_WHEN_CONTACT_JOINS_SIGNAL        = "settings.notify.when.contact.joins.signal";
+  public static final  String ANDROID_AUTO_MESSAGING_ENABLED          = "settings.android.auto.messaging.enabled";
   private static final String UNIVERSAL_EXPIRE_TIMER                  = "settings.universal.expire.timer";
   private static final String SENT_MEDIA_QUALITY                      = "settings.sentMediaQuality";
   private static final String CENSORSHIP_CIRCUMVENTION_ENABLED        = "settings.censorshipCircumventionEnabled";
@@ -141,6 +142,7 @@ public final class SettingsValues extends SignalStoreValues {
                          CALL_RINGTONE,
                          CALL_VIBRATE_ENABLED,
                          NOTIFY_WHEN_CONTACT_JOINS_SIGNAL,
+                         ANDROID_AUTO_MESSAGING_ENABLED,
                          UNIVERSAL_EXPIRE_TIMER,
                          SENT_MEDIA_QUALITY,
                          KEEP_MUTED_CHATS_ARCHIVED,
@@ -163,6 +165,14 @@ public final class SettingsValues extends SignalStoreValues {
 
   public void setLinkPreviewsEnabled(boolean enabled) {
     putBoolean(LINK_PREVIEWS, enabled);
+  }
+
+  public boolean isAndroidAutoMessagingEnabled() {
+    return getBoolean(ANDROID_AUTO_MESSAGING_ENABLED, false);
+  }
+
+  public void setAndroidAutoMessagingEnabled(boolean enabled) {
+    putBoolean(ANDROID_AUTO_MESSAGING_ENABLED, enabled);
   }
 
   public @NonNull KeepMessagesDuration getKeepMessagesDuration() {

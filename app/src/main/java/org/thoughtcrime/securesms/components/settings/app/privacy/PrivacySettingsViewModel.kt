@@ -47,6 +47,11 @@ class PrivacySettingsViewModel(
     refresh()
   }
 
+  fun setAndroidAutoMessagesEnabled(enabled: Boolean) {
+    SignalStore.settings.isAndroidAutoMessagingEnabled = enabled
+    refresh()
+  }
+
   fun togglePaymentLock(enable: Boolean) {
     SignalStore.payments.paymentLock = enable
     refresh()
@@ -76,6 +81,7 @@ class PrivacySettingsViewModel(
       screenSecurity = TextSecurePreferences.isScreenSecurityEnabled(AppDependencies.application),
       incognitoKeyboard = TextSecurePreferences.isIncognitoKeyboardEnabled(AppDependencies.application),
       paymentLock = SignalStore.payments.paymentLock,
+      androidAutoMessages = SignalStore.settings.isAndroidAutoMessagingEnabled,
       isObsoletePasswordEnabled = !SignalStore.settings.passphraseDisabled,
       isObsoletePasswordTimeoutEnabled = SignalStore.settings.passphraseTimeoutEnabled,
       obsoletePasswordTimeout = SignalStore.settings.passphraseTimeout,

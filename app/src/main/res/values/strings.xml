@@ -5691,6 +5691,8 @@
         <item quantity="other">%1$d contacts or groups</item>
     </plurals>
     <string name="PrivacySettingsFragment__messaging">Messaging</string>
+    <string name="PrivacySettingsFragment__android_auto_messages">Show messages in Android Auto</string>
+    <string name="PrivacySettingsFragment__android_auto_messages_summary">Allow Signal messages to appear and be read aloud in Android Auto, with reply and mark as read support.</string>
     <string name="PrivacySettingsFragment__disappearing_messages">Disappearing messages</string>
     <string name="PrivacySettingsFragment__app_security">App security</string>
     <!-- This refers to the multi-tasking overview (recent apps) from the Android operating system.-->

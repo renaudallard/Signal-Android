@@ -36,6 +36,7 @@ import java.util.Optional
 import androidx.core.app.Person as PersonCompat
 
 private const val BIG_PICTURE_DIMEN = 500
+private const val MAX_CAR_MESSAGES = 10
 
 /**
  * Wraps the compat and OS versions of the Notification builders so we can more easily access native
@@ -46,8 +47,8 @@ private const val BIG_PICTURE_DIMEN = 500
  */
 sealed class NotificationBuilder(protected val context: Context) {
 
-  private val privacy: NotificationPrivacyPreference = SignalStore.settings.messageNotificationsPrivacy
-  private val isNotLocked: Boolean = !KeyCachingService.isLocked(context)
+  protected val privacy: NotificationPrivacyPreference = SignalStore.settings.messageNotificationsPrivacy
+  protected val isNotLocked: Boolean = !KeyCachingService.isLocked(context)
 
   abstract fun setSmallIcon(@DrawableRes drawable: Int)
   abstract fun setColor(@ColorInt color: Int)
@@ -192,6 +193,9 @@ sealed class NotificationBuilder(protected val context: Context) {
       val extender: NotificationCompat.WearableExtender = NotificationCompat.WearableExtender()
 
       val markAsRead: PendingIntent? = conversation.getMarkAsReadIntent(context)
+      var remoteReply: PendingIntent? = null
+      var remoteInput: RemoteInput? = null
+
       if (markAsRead != null) {
         val markAsReadAction: NotificationCompat.Action =
           NotificationCompat.Action.Builder(R.drawable.symbol_check_24, context.getString(R.string.MessageNotifier_mark_read), markAsRead)
@@ -205,13 +209,14 @@ sealed class NotificationBuilder(protected val context: Context) {
 
       if (conversation.mostRecentNotification.canReply(context)) {
         val quickReply: PendingIntent? = conversation.getQuickReplyIntent(context)
-        val remoteReply: PendingIntent? = conversation.getRemoteReplyIntent(context, replyMethod)
+        remoteReply = conversation.getRemoteReplyIntent(context, replyMethod)
 
         val actionName: String = context.getString(R.string.MessageNotifier_reply)
         val label: String = context.getString(replyMethod.toLongDescription())
+        remoteInput = RemoteInput.Builder(DefaultMessageNotifier.EXTRA_REMOTE_REPLY).setLabel(label).build()
         val replyAction: NotificationCompat.Action? = if (Build.VERSION.SDK_INT >= 24 && remoteReply != null) {
           NotificationCompat.Action.Builder(R.drawable.symbol_reply_36, actionName, remoteReply)
-            .addRemoteInput(RemoteInput.Builder(DefaultMessageNotifier.EXTRA_REMOTE_REPLY).setLabel(label).build())
+            .addRemoteInput(remoteInput)
             .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
             .setShowsUserInterface(false)
             .build()
@@ -225,7 +230,7 @@ sealed class NotificationBuilder(protected val context: Context) {
 
         if (remoteReply != null) {
           val wearableReplyAction = NotificationCompat.Action.Builder(R.drawable.symbol_reply_24, actionName, remoteReply)
-            .addRemoteInput(RemoteInput.Builder(DefaultMessageNotifier.EXTRA_REMOTE_REPLY).setLabel(label).build())
+            .addRemoteInput(remoteInput)
             .build()
 
           extender.addAction(wearableReplyAction)
@@ -233,6 +238,7 @@ sealed class NotificationBuilder(protected val context: Context) {
       }
 
       builder.extend(extender)
+      addCarExtensions(conversation, markAsRead, remoteReply, remoteInput)
     }
 
     override fun addMarkAsReadActionActual(state: NotificationState) {
@@ -492,6 +498,38 @@ sealed class NotificationBuilder(protected val context: Context) {
 
     override fun setLocusIdActual(locusId: String) {
       builder.setLocusId(LocusIdCompat(locusId))
+    }
+
+    private fun addCarExtensions(
+      conversation: NotificationConversation,
+      markAsRead: PendingIntent?,
+      remoteReply: PendingIntent?,
+      remoteInput: RemoteInput?
+    ) {
+      if (!SignalStore.settings.isAndroidAutoMessagingEnabled() || !privacy.isDisplayMessage || !isNotLocked) {
+        return
+      }
+
+      val messages: List<String> = conversation.notificationItems
+        .takeLast(MAX_CAR_MESSAGES)
+        .mapNotNull { item -> item.getPrimaryText(context).toString().ifBlank { null } }
+
+      if (messages.isEmpty()) {
+        return
+      }
+
+      val unreadConversation = NotificationCompat.CarExtender.UnreadConversation.Builder(
+        conversation.getConversationTitle(context)?.toString() ?: conversation.getContentTitle(context).toString()
+      ).apply {
+        setLatestTimestamp(conversation.mostRecentNotification.timestamp)
+        markAsRead?.let { setReadPendingIntent(it) }
+        if (remoteReply != null && remoteInput != null) {
+          setReplyAction(remoteReply, remoteInput)
+        }
+        messages.forEach { addMessage(it) }
+      }.build()
+
+      builder.extend(NotificationCompat.CarExtender().setUnreadConversation(unreadConversation))
     }
   }
 }

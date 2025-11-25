@@ -9,6 +9,7 @@ data class PrivacySettingsState(
   val screenSecurity: Boolean,
   val incognitoKeyboard: Boolean,
   val paymentLock: Boolean,
+  val androidAutoMessages: Boolean,
   val isObsoletePasswordEnabled: Boolean,
   val isObsoletePasswordTimeoutEnabled: Boolean,
   val obsoletePasswordTimeout: Int,
